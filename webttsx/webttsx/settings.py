@@ -41,6 +41,8 @@ INSTALLED_APPS = (
     'tt_order',
     'tt_goods',
     'tt_cart',
+    'djcelery',
+    'tinymce',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -120,3 +122,16 @@ TINYMCE_DEFAULT_CONFIG = {
     'width': 600,
     'height': 400,
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.163.com'
+EMAIL_PORT = 25
+EMAIL_HOST_USER = 'itcast88@163.com'
+EMAIL_HOST_PASSWORD = 'python808'
+EMAIL_FROM = 'python<itcast88@163.com>'
+
+
+import djcelery
+djcelery.setup_loader()
+BROKER_URL = 'redis://127.0.0.1:6379/2'
+CELERY_IMPORTS = ('tt_user.task')

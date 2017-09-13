@@ -1,15 +1,15 @@
 # -*- coding:utf-8 -*-
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
-from django.db import transaction
-
 from datetime import datetime
 from decimal import Decimal
-#
-from webttsx.tt_user.models import UserInfo
+
+from django.db import transaction
+from django.shortcuts import render, redirect
+
 from webttsx.tt_cart.models import *
-from webttsx.tt_order import user_decorator
+from webttsx.tt_user import user_decorator
+from webttsx.tt_user.models import UserInfo
 from .models import *
+
 
 # def order(request):
 #     return render(request, 'tt_order/place_order.html')

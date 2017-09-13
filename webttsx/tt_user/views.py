@@ -1,9 +1,16 @@
 # -*- coding:utf-8 -*-
+from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from hashlib import sha1
+
+from . import user_decorator
 from .models import *
+from django.core.mail import send_mail
+from django.conf import settings
+from . import task
+
 
 # Create your views here.
 def register(request):
@@ -13,34 +20,49 @@ def register_handle(request):
     post = request.POST
     uname = post.get('user_name')
     upwd = post.get('pwd')
-    upwd2 = post.get('cpwd')
+    # upwd2 = post.get('cpwd')
     uemail = post.get('email')
-
-    if upwd != upwd2:
-        return redirect('/user/register/')
+    # if upwd != upwd2:
+    #     return redirect('/user/register/')
     # upwd = upwd.encode('utf-8')
     s1 = sha1()
     s1.update(upwd.encode('utf-8'))
-    upwd3 = s1.hexdigest()
+    upwd_sha1 = s1.hexdigest()
 
     user = UserInfo()
     user.uname = uname
-    user.upwd = upwd3
+    user.upwd = upwd_sha1
     user.uemail = uemail
     user.save()
 
-    return redirect('/user/login/')
+    task.sendemali.delay(user.id, uemail)
+    # msg = '<a href="http://127.0.0.1:8000/user/active%s/">点击激活</a>'%(user.id)
+    # send_mail('天天生鲜用户激活', '', settings.EMAIL_FROM, [uemail], html_message=msg)
+
+    return HttpResponse('账户注册成功，请到邮箱激活')
+
+#通过邮箱的链接，激活刚注册的账户
+def active(request, uid):
+    user = UserInfo.objects.get(id=uid)
+    user.isActive = True
+    user.save()
+    return HttpResponse('激活成功，<a href="/user/login/">点击登录</a>')
+
 
 def register_exist(request):
     uname = request.GET.get('uname')
+    uemail = request.GET.get('uemail')
     count = UserInfo.objects.filter(uname=uname).count()
-    return JsonResponse({'count':count})
+    length = UserInfo.objects.filter(uemail=uemail).count()
+    return JsonResponse({'count':count, 'length':length})
+
 
 
 def login(request):
     uname = request.COOKIES.get('uname', '')
     context = {'title':'用户登录', 'error_name':0, 'error_pwd':0, 'uname':uname}
     return render(request, 'tt_user/login.html', context)
+
 
 def login_handle(request):
     #接受请求信息
@@ -71,6 +93,8 @@ def login_handle(request):
         context = {'title':'用户登录', 'error_name':1, 'error_pwd':0, 'uname':uname, 'upwd':upwd}
         return render(request, 'tt_user/login.html', context)
 
+
+@user_decorator.login
 def info(request):
     user_email = UserInfo.objects.get(id=request.session['user_id']).uemail
     context = {'title':'用户中心',
@@ -78,10 +102,12 @@ def info(request):
                'user_name':request.session['user_name']}
     return render(request, 'tt_user/user_center_info.html', context)
 
+@user_decorator.login
 def order(request):
     context = {'title':'用户中心'}
     return render(request, 'tt_user/user_center_order.html', context)
 
+@user_decorator.login
 def site(request):
     user = UserInfo.objects.get(id=request.session['user_id'])
     if request.method == 'POST':
