@@ -93,13 +93,25 @@ def login_handle(request):
         context = {'title':'用户登录', 'error_name':1, 'error_pwd':0, 'uname':uname, 'upwd':upwd}
         return render(request, 'tt_user/login.html', context)
 
+def logout(request):
+    #清除所有session,可以单独清id
+    request.session.flush()
+    return redirect('/')
 
 @user_decorator.login
 def info(request):
     user_email = UserInfo.objects.get(id=request.session['user_id']).uemail
+    goods_ids = request.COOKIES.get('goods_ids', ',')
+    goods_ids1 = goods_ids.split(',')
+    goods_list = []
+    # for goods_id in goods_ids1:#导入库后展开
+        #与数据库交换5次明确点击顺序　，GoodsInfo.objects.filter(id_in=goods_ids1)不能明确顺序
+        # goods_list.append(GoodsInfo.objects.get(id=int(goods_id)))
     context = {'title':'用户中心',
                'user_email':user_email,
-               'user_name':request.session['user_name']}
+               'user_name':request.session['user_name']
+               'page_name':1,
+               'goods_list':goods_list}
     return render(request, 'tt_user/user_center_info.html', context)
 
 @user_decorator.login

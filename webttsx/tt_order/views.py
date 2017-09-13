@@ -6,7 +6,7 @@ from django.db import transaction
 from django.shortcuts import render, redirect
 
 from webttsx.tt_cart.models import *
-from webttsx.tt_user import user_decorator
+from ..tt_user import user_decorator
 from webttsx.tt_user.models import UserInfo
 from .models import *
 
