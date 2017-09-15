@@ -9,12 +9,18 @@ from .models import *
 
 @user_decorator.login
 def cart(request):
+    # cart_list = CartInfo.objects.filter(user_id=14)
+    # context = {'carts':cart_list}
+    # return render(request, 'tt_cart/cart.html', context)
     uid = request.session['user_id']
     carts = CartInfo.objects.filter(user_id=uid)
     context = {'title':'购物车',
                'page_name':1,
                'carts':carts}
     return render(request, 'tt_cart/cart.html', context)
+
+
+
 
 @user_decorator.login
 def add(request, gid, count):
@@ -37,3 +43,24 @@ def add(request, gid, count):
         return JsonResponse({'count':count})
     else:#不是ajxa直接跳转cart
         return redirect('/cart/')
+
+@user_decorator.login
+def edit(request, cart_id, count):
+    try:
+        cart = CartInfo.objects.get(pk=int(cart_id))
+        count1 = cart.count=int(count)
+        cart.save()
+        data = {'ok':0}
+    except Exception as e:
+        data = {'ok':count1}
+    return JsonResponse(data)
+
+@user_decorator.login
+def delete(request, cart_id):
+    try:
+        cart = CartInfo.objects.get(pk=int(cart_id))
+        cart.delete()
+        data = {'ok':1}
+    except Exception as e:
+        data = {'ok':0}
+    return JsonResponse(data)

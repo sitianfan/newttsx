@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% block head %}
-{{ title }}
     <script>
     $(function () {
         total1 = 0;//商品总个数
@@ -21,26 +20,30 @@
     </script>
 {% endblock head %}
 {% block body %}
-	<title>天天生鲜-提交订单</title>
 	<div class="header_con">
 		<div class="header">
 			<div class="welcome fl">欢迎来到天天生鲜!</div>
 			<div class="fr">
+				{%if request.session.user_name|default:'' != ''%}
 				<div class="login_info fl">
-					欢迎您：<em>张 山</em>
-				</div>
-				<div class="login_btn fl">
-					<a href="login.html">登录</a>
+					欢迎您：<em>{{request.session.user_name}}</em>
 					<span>|</span>
-					<a href="register.html">注册</a>
+					<a href="/user/logout/">退出</a>
 				</div>
+				{%else%}
+				<div class="login_btn fl">
+					<a href="/user/login/">登录</a>
+					<span>|</span>
+					<a href="/user/register/">注册</a>
+				</div>
+				{%endif%}
 				<div class="user_link fl">
 					<span>|</span>
-					<a href="user_center_info.html">用户中心</a>
+					<a href="/user/info/">用户中心</a>
 					<span>|</span>
-					<a href="cart.html">我的购物车</a>
+					<a href="/cart/">我的购物车</a>
 					<span>|</span>
-					<a href="user_center_order.html">我的订单</a>
+					<a href="/user/order/">我的订单</a>
 				</div>
 			</div>
 		</div>
@@ -61,7 +64,7 @@
 			<dt>寄送到：</dt>
 			<dd><input type="radio" name="" checked="">{{ user.uaddress }} ({{ user.shou }}收)　{{ user.uphone }}</dd>
 		</dl>
-		<a href="user_center_site.html" class="edit_site">编辑收货地址</a>
+		<a href="/user/site/" class="edit_site">编辑收货地址</a>
 
 	</div>
 
@@ -89,11 +92,12 @@
 			<li class="col04">数量</li>
 			<li class="col05">小计</li>
 		</ul>
-
+        <form method="post" action="/order/order_handle/">
         {% for cart in carts %}
 		<ul class="goods_list_td clearfix">
+            <input type="hidden" name="cid" value="{{ cart.id }}">
 			<li class="col01">{{ forloop.counter }}</li>
-			<li class="col02"><img src="/static/{{ cart.goods.gpic }}"></li>
+			<li class="col02"><img src="/static/media/{{ cart.goods.gpic }}"></li>
 			<li class="col03">{{ cart.goods.gtitle|slice:'10' }}...</li>
 			<li class="col04">{{ cart.goods.gunit }}</li>
 			<li class="col05"><span>{{ cart.goods.gprice }}</span>元</li>
@@ -102,15 +106,6 @@
 		</ul>
         {% endfor %}
 
-{#		<ul class="goods_list_td clearfix">#}
-{#			<li class="col01">2</li>#}
-{#			<li class="col02"><img src="/static/images/goods/goods003.jpg"></li>#}
-{#			<li class="col03">大兴大棚草莓</li>#}
-{#			<li class="col04">500g</li>#}
-{#			<li class="col05">16.80元</li>#}
-{#			<li class="col06">1</li>#}
-{#			<li class="col07">16.80元</li>#}
-{#		</ul>#}
 	</div>
 
 	<h3 class="common_title">总金额结算</h3>
@@ -124,12 +119,12 @@
 	</div>
 
 	<div class="order_submit clearfix">
-        <form method="post" action="/order/order_handle">
+        <form method="post" action="/order/order_handle/">
         {% csrf_token %}
-		<a href="javascript:;" id="order_btn">提交订单</a>
+            <input type="submit" value="提交订单">
         </form>
 	</div>
-
+    </form>
     	<div class="popup_con">
 		<div class="popup">
 			<p>订单提交成功！</p>

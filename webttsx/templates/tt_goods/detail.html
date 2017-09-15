@@ -1,4 +1,4 @@
-{% extends 'tt_goods.base.html' %}
+{% extends 'base2.html' %}
 {% block head %}
 <title>天天生鲜-商品详情</title>
 {% endblock head %}
@@ -127,7 +127,8 @@
 
 	{% endblock body %}}
 	{% block foot %}
-<script type="text/javascript" src="/static/js/jquery-1.12.2.js"></script>
+<div class="add_jump"></div>
+<script type="text/javascript" src="/static/js/jquery-1.12.4.min.js"></script>
 	<script type="text/javascript">
 		var $add_x = $('#add_cart').offset().top;
 		var $add_y = $('#add_cart').offset().left;
@@ -137,6 +138,14 @@
 
 		$(".add_jump").css({'left':$add_y+80,'top':$add_x+10,'display':'block'})
 		$('#add_cart').click(function(){
+		    //判断是否登录,没有登录提示登录
+		    if($('.login_btn').text().indexOf('登录')>=0){
+		        alert('请先登录再购买');
+		        location.href='/user/login/';
+		        return;
+			}
+
+
 			$(".add_jump").stop().animate({
 				'left': $to_y+7,
 				'top': $to_x+7},
@@ -146,6 +155,11 @@
 					});
 
 			});
+		    //异步
+		    num = parseInt($('.num_show').val());
+		    $.get('/cart/add{{g.id}}_'+num+'/', function (data) {
+		        $('#show_count').text(data.count);
+            })
 		})
 	</script>
 	{% endblock foot %}

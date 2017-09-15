@@ -7,8 +7,6 @@ from hashlib import sha1
 
 from . import user_decorator
 from .models import *
-from django.core.mail import send_mail
-from django.conf import settings
 from . import task
 
 
@@ -53,8 +51,8 @@ def register_exist(request):
     uname = request.GET.get('uname')
     uemail = request.GET.get('uemail')
     count = UserInfo.objects.filter(uname=uname).count()
-    length = UserInfo.objects.filter(uemail=uemail).count()
-    return JsonResponse({'count':count, 'length':length})
+    email_count = UserInfo.objects.filter(uemail=uemail).count()
+    return JsonResponse({'count':count, 'enmail_count':email_count})
 
 
 
@@ -85,6 +83,7 @@ def login_handle(request):
                 red.set_cookie('uname', max_age=-1)
             request.session['user_id'] = users[0].id
             request.session['user_name'] = uname
+
             return red
         else:
             context = {'title':'用户登录', 'error_name':0, 'error_pwd':1, 'uname':uname, 'upwd':upwd}
@@ -96,7 +95,7 @@ def login_handle(request):
 def logout(request):
     #清除所有session,可以单独清id
     request.session.flush()
-    return redirect('/')
+    return HttpResponseRedirect('/user/login/')
 
 @user_decorator.login
 def info(request):
@@ -105,11 +104,11 @@ def info(request):
     goods_ids1 = goods_ids.split(',')
     goods_list = []
     # for goods_id in goods_ids1:#导入库后展开
-        #与数据库交换5次明确点击顺序　，GoodsInfo.objects.filter(id_in=goods_ids1)不能明确顺序
-        # goods_list.append(GoodsInfo.objects.get(id=int(goods_id)))
+    #     # 与数据库交换5次明确点击顺序　，GoodsInfo.objects.filter(id_in=goods_ids1)不能明确顺序
+    #     goods_list.append(GoodsInfo.objects.get(id=int(goods_id)))
     context = {'title':'用户中心',
                'user_email':user_email,
-               'user_name':request.session['user_name']
+               'user_name':request.session['user_name'],
                'page_name':1,
                'goods_list':goods_list}
     return render(request, 'tt_user/user_center_info.html', context)
@@ -131,3 +130,46 @@ def site(request):
         user.save()
     context = {'title':'用户中心', 'user':user}
     return render(request, 'tt_user/user_center_site.html', context)
+
+
+from PIL import Image, ImageDraw, ImageFont
+def verify_code(request):
+    import random
+    bgcolor = (random.randrange(20, 100), random.randrange(
+        20, 100), 255)
+    width = 100
+    height = 25
+    im = Image.new('RGB', (width, height), bgcolor)
+    draw = ImageDraw.Draw(im)
+    for i in range(0, 100):
+        xy = (random.randrange(0, width), random.randrange(0, height))
+        fill = (random.randrange(0, 255), 255, random.randrange(0, 255))
+        draw.point(xy, fill=fill)
+    str1 = 'ABCD123EFGHIJK456LMNOPQRS789TUVWXYZ0'
+    rand_str = ''
+    for i in range(0, 4):
+        rand_str += str1[random.randrange(0, len(str1))]
+    font = ImageFont.truetype('FreeMono.ttf', 23)
+    fontcolor = (255, random.randrange(0, 255), random.randrange(0, 255))
+    draw.text((5, 2), rand_str[0], font=font, fill=fontcolor)
+    draw.text((25, 2), rand_str[1], font=font, fill=fontcolor)
+    draw.text((50, 2), rand_str[2], font=font, fill=fontcolor)
+    draw.text((75, 2), rand_str[3], font=font, fill=fontcolor)
+    del draw
+    request.session['verifycode'] = rand_str
+    from io import BytesIO
+    buf = BytesIO()
+    im.save(buf, 'png')
+    return HttpResponse(buf.getvalue(), 'image/png')
+
+
+def verify_show(request):
+    return render(request, 'booktest/verify_show.html')
+
+def verify_yz(request):
+    yzm = request.POST.get('yzm')
+    verifycode = request.session['verifycode']
+    if yzm.lower() == verifycode.lower():
+        return HttpResponse('验证成功')
+    else:
+        return HttpResponse('验证失败')
