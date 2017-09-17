@@ -1,89 +1,55 @@
-{% extends 'base2.html' %}
-{% block head %}
-	<title>天天生鲜-商品列表</title>
-{% endblock head %}
-
-{% block body %}
-	<div class="navbar_con">
-		<div class="navbar clearfix">
-			<div class="subnav_con fl">
-				<h1>全部商品分类</h1>	
-				<span></span>			
-				<ul class="subnav">
-					<li><a href="#" class="fruit">新鲜水果</a></li>
-					<li><a href="#" class="seafood">海鲜水产</a></li>
-					<li><a href="#" class="meet">猪牛羊肉</a></li>
-					<li><a href="#" class="egg">禽类蛋品</a></li>
-					<li><a href="#" class="vegetables">新鲜蔬菜</a></li>
-					<li><a href="#" class="ice">速冻食品</a></li>
-				</ul>
-			</div>
-			<ul class="navlist fl">
-				<li><a href="">首页</a></li>
-				<li class="interval">|</li>
-				<li><a href="">手机生鲜</a></li>
-				<li class="interval">|</li>
-				<li><a href="">抽奖</a></li>
-			</ul>
-		</div>
-	</div>
+{% extends 'tt_goods/base.html' %}
+{% block nav %}
 
 	<div class="breadcrumb">
 		<a href="#">全部分类</a>
 		<span>></span>
-		<a href="#">新鲜水果</a>
+		<a href="#">{{ type_title }}</a>
 	</div>
+{% endblock nav %}
 
-	<div class="main_wrap clearfix">
-		<div class="l_wrap fl clearfix">
-			<div class="new_goods">
-				<h3>新品推荐</h3>
-				<ul>
-					<li>
-						<a href="#"><img src="/static/images/goods/goods001.jpg"></a>
-						<h4><a href="#">进口柠檬</a></h4>
-						<div class="prize">￥3.90</div>
-					</li>
-					<li>
-						<a href="#"><img src="/static/images/goods/goods002.jpg"></a>
-						<h4><a href="#">玫瑰香葡萄</a></h4>
-						<div class="prize">￥16.80</div>
-					</li>
-				</ul>
-			</div>
-		</div>
 
-		<div class="r_wrap fr clearfix">
+
+
+	{% block right %}
 			<div class="sort_bar">
-				<a href="#" class="active">默认</a>
-				<a href="#">价格</a>
-				<a href="#">人气</a>
+				<a href="/list{{ tid }}_1_1/" {% if order == '1' %} class="active" {% endif %}>默认</a>
+				<a href="/list{{ tid }}_1_2/"  {% if order == '2' %} class="active" {% endif %}>价格</a>
+				<a href="/list{{ tid }}_1_3/"  {% if order == '3' %} class="active" {% endif %}>人气</a>
 			</div>
 
 
 			<ul class="goods_type_list clearfix">
 				{% for g in page %}
 				<li>
-					<a href="{{g.id}}"><img src="/static/{{g.gpic}}"></a>
+					<a href="/{{g.id}}/"><img src="/static/media/{{g.gpic}}"></a>
 					<h4><a href="/{{g.id}}/">{{g.gtitle}}</a></h4>
 					<div class="operate">
 						<span class="prize">￥{{g.gprice}}</span>
-						<span class="unit">{{g.gunit}}</span>
+						<span class="unit">{{ g.gprice }}/{{g.gunit}}</span>
 						<a href="/cart/add{{g.id}}_1/" class="add_goods" title="加入购物车"></a>
 					</div>
 				</li>
-
+               {% endfor %}
 			</ul>
 
 			<div class="pagenation">
-				<a href="#"><上一页</a>
-				<a href="#" class="active">1</a>
-				<a href="#">2</a>
-				<a href="#">3</a>
-				<a href="#">4</a>
-				<a href="#">5</a>
-				<a href="#">下一页></a>
+                {% if page.has_previous %}
+                <a href="/list{{ tid }}_1_{{ order }}/">&lt;&lt;首页</a>
+				<a href="/list{{ tid }}_{{ pindex|add:-1 }}_{{ order }}/">上一页</a>
+                {% endif %}
+                {% for i in page.paginator.page_range %}
+                    {% if i == pindex %}
+				        <a href="#" class="active">{{ i }}</a>
+                    {% else %}
+				        <a href="/list{{ tid }}_{{ i }}_{{ order }}/">{{ i }}</a>
+                    {% endif %}
+                {% endfor %}
+			    {% if page.has_next %}
+				<a href="/list{{ tid }}_{{ pindex|add:1 }}_{{ order }}/">下一页</a>
+                <a href="/list{{ tid }}_{{ page.paginator.num_pages }}_{{ order }}/">尾页&gt;&gt;</a>
+                {% endif %}
 			</div>
-		</div>
-	</div>
-{% endblock body %}
+		{% endblock right %}
+
+

@@ -8,7 +8,7 @@ from hashlib import sha1
 from . import user_decorator
 from .models import *
 from . import task
-
+from tt_goods.models import *
 
 # Create your views here.
 def register(request):
@@ -162,7 +162,17 @@ def info(request):
     #            'user_name':request.session['user_name'],
     #            'page_name':1,
     #            'goods_list':goods_list}
-    context = {'title':'用户中心'}
+    #读取最近浏览信息
+    browsed_late = request.COOKIES.get('browsed_late')
+    goods_list = []
+    if browsed_late:
+        browsed_late_list = browsed_late.split(',')
+        for gid in browsed_late_list:
+            #维护浏览顺序，逐个添加明确点击顺序　
+            goods_list.append(GoodsInfo.objects.get(id=gid))
+        # goods_list = GoodsInfo.objects.filter(id__in=(browsed_late_list))
+
+    context = {'title':'用户中心', 'goods_list':goods_list}
     return render(request, 'tt_user/user_center_info.html', context)
 
 @user_decorator.login

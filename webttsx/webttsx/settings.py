@@ -43,6 +43,7 @@ INSTALLED_APPS = (
     'tt_cart',
     'djcelery',
     'tinymce',
+    'haystack',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -136,3 +137,13 @@ import djcelery
 djcelery.setup_loader()
 BROKER_URL = 'redis://127.0.0.1:6379/2'
 CELERY_IMPORTS = ('tt_user.task')
+
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_cn_backend.WhooshEngine',
+        'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
+    }
+}
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+HAYSTACK_SEARCH_RESULTS_PER_PAGE = 18

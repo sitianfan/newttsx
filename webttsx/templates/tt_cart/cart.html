@@ -1,4 +1,4 @@
-{% extends 'base2.html' %}
+{% extends 'base_head_foot.html' %}
 {% block head %}
     <script src="/static/js/jquery-1.12.4.min.js"></script>
     <script>
@@ -78,7 +78,7 @@
             //手动改数量
             $('.num_show').blur(function () {
                 count = $(this).val();
-                if(count <= 0){
+                if(count < 1){
                     alert('请输入正确的数量');
                     $(this).focus();
                     return;
@@ -103,7 +103,7 @@
         });
     </script>
 {% endblock head %}
-{% block body %}
+{% block content %}
     <form method="get" action="/order/">
 	<div class="total_count">全部商品<em class="total_count"></em>件</div>
 	<ul class="cart_list_th clearfix">
@@ -141,4 +141,4 @@
 		<li class="col04"><input type="submit" value="去结算"></li>
 	</ul>
     </form>
-{% endblock body %}
+{% endblock content %}
