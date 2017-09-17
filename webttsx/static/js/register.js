@@ -46,12 +46,6 @@ $(function(){
 			$('#user_name').next().show();
 			error_name = true;
 		}
-	// 	else
-	// 	{
-	// 		$('#user_name').next().hide();
-	// 		error_name = false;
-	// 	}
-	// }
 		else
 		{ $.get('/user/register_exist/?uname='+$('#user_name').val(),function (data) {
 			if(data.count==1){
@@ -102,9 +96,18 @@ $(function(){
 		var re = /^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$/;
 
 		if(re.test($('#email').val()))
-		{
-			$('#email').next().hide();
-			error_email = false;
+		{ $.get('/user/register_email/',{'uemail':$('#email').val()},function (data){
+			if(data.count>=1){
+				$('#email').next().html('邮箱已经存在').show();
+				error_email = true;
+			}else{
+                $('#email').next().hide();
+                error_email = false;
+
+			}
+
+		})
+
 		}
 		else
 		{
@@ -140,4 +143,4 @@ $(function(){
 
 
 
-})
+});

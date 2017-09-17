@@ -12,7 +12,8 @@ from . import task
 
 # Create your views here.
 def register(request):
-    return render(request, 'tt_user/register.html')
+    context = {'title':'注册'}
+    return render(request, 'tt_user/register.html', context)
 
 def register_handle(request):
     post = request.POST
@@ -49,73 +50,124 @@ def active(request, uid):
 
 def register_exist(request):
     uname = request.GET.get('uname')
-    uemail = request.GET.get('uemail')
     count = UserInfo.objects.filter(uname=uname).count()
-    email_count = UserInfo.objects.filter(uemail=uemail).count()
-    return JsonResponse({'count':count, 'enmail_count':email_count})
+    return JsonResponse({'count':count})
 
-
+def register_email(request):
+    uemail = request.GET.get('uemail')
+    count = UserInfo.objects.filter(uemail=uemail).count()
+    print(count)
+    return JsonResponse({'count':count})
 
 def login(request):
     uname = request.COOKIES.get('uname', '')
-    context = {'title':'用户登录', 'error_name':0, 'error_pwd':0, 'uname':uname}
+    context = {'title':'用户登录', 'uname':uname}
     return render(request, 'tt_user/login.html', context)
 
 
-def login_handle(request):
-    #接受请求信息
-    post = request.POST
-    uname = post.get('username')
-    upwd = post.get('pwd')
-    jizhu = post.get('jizhu', 0)
+# def login_handle(request):
+#     #接受请求信息
+#     post = request.POST
+#     uname = post.get('username')
+#     upwd = post.get('pwd')
+#     jizhu = post.get('jizhu', 0)
+#
+#     users = UserInfo.objects.filter(uname=uname)
+#     #判断：如果未查找则用户名错，如果查到则判断密码是否正确
+#     if len(users) == 1:
+#         s1 = sha1()
+#         s1.update(upwd.encode('utf-8'))
+            #user是一个对象，[0]是他的各种选项如name,email等等
+#         if s1.hexdigest() == users[0].upwd:
+#             red = HttpResponseRedirect('/user/info/')
+#             #记住用户名
+#             if jizhu != 0:
+#                 red.set_cookie('uname', uname)
+#             else:
+#                 red.set_cookie('uname', max_age=-1)
+#             request.session['user_id'] = users[0].id
+#             request.session['user_name'] = uname
+#
+#             return red
+#         else:
+#             context = {'title':'用户登录', 'error_name':0, 'error_pwd':1, 'uname':uname, 'upwd':upwd}
+#             return render(request, 'tt_user/login.html', context)
+#     else:
+#         context = {'title':'用户登录', 'error_name':1, 'error_pwd':0, 'uname':uname, 'upwd':upwd}
+#         return render(request, 'tt_user/login.html', context)
 
-    users = UserInfo.objects.filter(uname=uname)
-    #判断：如果未查找则用户名错，如果查到则判断密码是否正确
-    if len(users) == 1:
+
+def login_handle(request):
+    if request.method == 'GET':
+        return redirect('/user/login/')
+    dict = request.POST
+    uname = dict.get('username')
+    upwd = dict.get('pwd')
+    urem = dict.get('remember', '0')
+    yzm = dict.get('yzm')
+    #判断验证吗是否正确
+    context = {'title':'用户登录', 'uname':uname, 'upwd':upwd, 'uname_error':0, 'upwd_error':0, 'yzm_error':0}
+    if yzm.lower() != request.session['verifycode'].lower():
+        return render(request, 'tt_user/login.html',  context)
+    user = UserInfo.objects.filter(uname=uname)
+    if user:
+        #用户名存在
+        upwd_db = user[0].upwd
         s1 = sha1()
         s1.update(upwd.encode('utf-8'))
-        if s1.hexdigest() == users[0].upwd:
-            red = HttpResponseRedirect('/user/info/')
-            #记住用户名
-            if jizhu != 0:
-                red.set_cookie('uname', uname)
+        upwd_sha1 = s1.hexdigest()
+        #对比密码
+        if upwd_db == upwd_sha1:#正确,转到info
+            if user[0].isActive:
+                #记录地址,在请求页面退出，回到请求页面,即将重定向的页面参数化
+                #字典的访问直接用[]没法给默认值，用get方法(一开始直接请求就还没有记录，需要默认值)
+                #中间件记录的方法
+                response = redirect(request.session.get('url_path', '/'))
+                # response = redirect('/user/info/')
+                if urem=='1':
+                    response.set_cookie('user_name', uname, expires=60*60*24*14)
+                else:
+                    response.set_cookie('user_name', '', expires=-1)
+                request.session['user_id'] = user[0].id
+                request.session['uname'] = uname
+                return response
             else:
-                red.set_cookie('uname', max_age=-1)
-            request.session['user_id'] = users[0].id
-            request.session['user_name'] = uname
-
-            return red
+                return HttpResponse('账户未激活,请先激活账户')
         else:
-            context = {'title':'用户登录', 'error_name':0, 'error_pwd':1, 'uname':uname, 'upwd':upwd}
-            return render(request, 'tt_user/login.html', context)
+            #密码错误
+            context['upwd_error']=1
+            return render(request, 'tt_user/login.html',  context)
+
     else:
-        context = {'title':'用户登录', 'error_name':1, 'error_pwd':0, 'uname':uname, 'upwd':upwd}
+        #用户名不存在
+        context['uname_error'] = 1
         return render(request, 'tt_user/login.html', context)
 
 def logout(request):
     #清除所有session,可以单独清id
     request.session.flush()
-    return HttpResponseRedirect('/user/login/')
+    return redirect('/')
 
 @user_decorator.login
 def info(request):
-    user_email = UserInfo.objects.get(id=request.session['user_id']).uemail
-    goods_ids = request.COOKIES.get('goods_ids', ',')
-    goods_ids1 = goods_ids.split(',')
-    goods_list = []
+    # user_email = UserInfo.objects.get(id=request.session['user_id']).uemail
+    # goods_ids = request.COOKIES.get('goods_ids', ',')
+    # goods_ids1 = goods_ids.split(',')
+    # goods_list = []
     # for goods_id in goods_ids1:#导入库后展开
     #     # 与数据库交换5次明确点击顺序　，GoodsInfo.objects.filter(id_in=goods_ids1)不能明确顺序
     #     goods_list.append(GoodsInfo.objects.get(id=int(goods_id)))
-    context = {'title':'用户中心',
-               'user_email':user_email,
-               'user_name':request.session['user_name'],
-               'page_name':1,
-               'goods_list':goods_list}
+    # context = {'title':'用户中心',
+    #            'user_email':user_email,
+    #            'user_name':request.session['user_name'],
+    #            'page_name':1,
+    #            'goods_list':goods_list}
+    context = {'title':'用户中心'}
     return render(request, 'tt_user/user_center_info.html', context)
 
 @user_decorator.login
 def order(request):
-    context = {'title':'用户中心'}
+    context = {'title':'我的订单'}
     return render(request, 'tt_user/user_center_order.html', context)
 
 @user_decorator.login
@@ -157,19 +209,22 @@ def verify_code(request):
     draw.text((75, 2), rand_str[3], font=font, fill=fontcolor)
     del draw
     request.session['verifycode'] = rand_str
+    #内存文件操作py2
+    #import cStringIO
+    #buf = cStringIo.StringIO()
     from io import BytesIO
     buf = BytesIO()
     im.save(buf, 'png')
     return HttpResponse(buf.getvalue(), 'image/png')
 
 
-def verify_show(request):
-    return render(request, 'booktest/verify_show.html')
-
-def verify_yz(request):
-    yzm = request.POST.get('yzm')
-    verifycode = request.session['verifycode']
-    if yzm.lower() == verifycode.lower():
-        return HttpResponse('验证成功')
-    else:
-        return HttpResponse('验证失败')
+# def verify_show(request):
+#     return render(request, 'booktest/verify_show.html')
+#
+# def verify_yz(request):
+#     yzm = request.POST.get('yzm')
+#     verifycode = request.session['verifycode']
+#     if yzm.lower() == verifycode.lower():
+#         return HttpResponse('验证成功')
+#     else:
+#         return HttpResponse('验证失败')

@@ -9,10 +9,12 @@ urlpatterns = [
     url(r'^active(\d+)/$', views.active),
     url(r'^register_exist/$', views.register_exist),
     url(r'^login/$', views.login),
+    url(r'^register_email/$', views.register_email),
     url(r'^login_handle/$', views.login_handle),
     url(r'^info/$', views.info),
     url(r'^order/$', views.order),
     url(r'^site/$', views.site),
     url(r'^logout/$', views.logout),
+    url(r'^yzm/$', views.verify_code),
 ]
 
