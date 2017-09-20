@@ -1,6 +1,14 @@
 {% extends 'base.html' %}
 {% block head %}
 	<script type="text/javascript" src="/static/js/register.js"></script>
+    <script>
+        $(function () {
+            $('#change').css('cursor','pointer').click(function () {
+                $('.yzm').attr('src', $('.yzm').attr('src')+1);
+            })
+        })
+
+    </script>
 {% endblock head %}
 {% block body %}
     <div class="register_con">
@@ -40,7 +48,7 @@
 					</li>
                     <li>
                         <input class="email" type="text" name="email" id="email" placeholder="请输入验证码">
-                        <img class="yzm" src="/user/yzm/" alt="">
+                        <img class="yzm" id="change"  src="/user/yzm/?1" alt="">
                         <span class="error_tip">提示信息</span>
 					</li>
 					<li class="agreement">

@@ -5,8 +5,9 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.cart),
-    url(r'^add(\d+)_(\d+)/$', views.add),
-    url(r'^edit(\d+)_(\d+)/$', views.edit),
-    url(r'^delete(\d+)/$', views.delete),
+    url(r'^add/$', views.add),
+    url(r'^edit/$', views.edit),
+    url(r'^remove/$', views.remove),
+    url(r'^count/$', views.count),
 ]
 

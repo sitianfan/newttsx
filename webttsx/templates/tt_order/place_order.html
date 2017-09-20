@@ -16,7 +16,13 @@
         $('#total2').text(total2.toFixed(2));
         $('#total3').text((total2+10).toFixed(2));
         $('#total4').val((total2+10)).toFixed(2);
+
+
+
     });
+
+
+
     </script>
 {% endblock head %}
 {% block body %}
@@ -24,9 +30,9 @@
 		<div class="header">
 			<div class="welcome fl">欢迎来到天天生鲜!</div>
 			<div class="fr">
-				{%if request.session.user_name|default:'' != ''%}
+				{%if request.session.user_id|default:'' != ''%}
 				<div class="login_info fl">
-					欢迎您：<em>{{request.session.user_name}}</em>
+					欢迎您：<em>{{request.session.uname}}</em>
 					<span>|</span>
 					<a href="/user/logout/">退出</a>
 				</div>
@@ -121,7 +127,7 @@
 	<div class="order_submit clearfix">
         <form method="post" action="/order/order_handle/">
         {% csrf_token %}
-            <input type="submit" value="提交订单">
+            <input type="submit"  value="提交订单">
         </form>
 	</div>
     </form>

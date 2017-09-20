@@ -96,7 +96,6 @@ def order(request):
 #     context = {'carts':carts}
 #     return render(request, 'tt_order/place_order.html', context)
 
-
 @transaction.atomic
 @user_decorator.login
 def order_handle(request):
@@ -105,12 +104,12 @@ def order_handle(request):
     sid = transaction.savepoint()
     #创建订单主表
     order = OrderInfo()
-    # uid = request.session['user_id']
+    uid = request.session['user_id']
     # order.oid = '%s%s'%(datetime.now().strftime('%Y%m%d%H%M%S'), uid)
     # order.user_id = uid
     # order_ototal = Decimal(request.POST.get('total'))
-    order.oid = '%s%s'%(datetime.now().strftime('%Y%m%d%H%M%S'), '14')
-    order.user_id = 14
+    order.oid = '%s%s'%(datetime.now().strftime('%Y%m%d%H%M%S'), uid)
+    order.user_id = uid
     order.ototal = 0
     order.oaddress = ''
     order.save()
@@ -120,6 +119,7 @@ def order_handle(request):
     isOk = True
     for cart in carts:
         #库存足够可以购买
+
         if cart.goods.gkucun >= cart.count:
             detail = OrderDetailInfo()
             detail.order = order
@@ -136,9 +136,11 @@ def order_handle(request):
         else:
             isOk = False
             break
-    if isOk:
+
+    if isOk and carts:
         #订单成功
         order.ototal = total
+        order.oIsPay = isOk
         order.save()
         transaction.savepoint_commit(sid)
         return redirect('/user/info/')

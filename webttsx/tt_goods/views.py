@@ -28,12 +28,22 @@ def list(request, tid, pindex, porder):
     #查出来了所有的分类信息
     type_title = TypeInfo.objects.get(id=tid).ttitle
     gnew = GoodsInfo.objects.filter(gtype_id=tid).order_by('-id')[0:2]
+
     order_str = '-id'
     if porder == '2':
         order_str = '-gprice'
-    elif porder == '3':
+    elif porder == '-3':
         order_str = '-gclick'
+    elif porder == '4':
+        order_str = 'id'
+    elif porder == '5':
+        order_str = 'gprice'
+    elif porder == '6':
+        order_str = 'gclick'
     glist = GoodsInfo.objects.filter(gtype_id=tid).order_by(order_str)
+
+
+
     paginator = Paginator(glist, 10)
     pindex1 = int(pindex)
     page = paginator.page(pindex1)

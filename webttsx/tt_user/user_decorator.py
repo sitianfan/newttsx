@@ -1,8 +1,7 @@
 #! /usr/bin/env python3
 # -*- coding:utf-8 -*-
 from django.shortcuts import redirect
-from django.http import HttpResponseRedirect
-
+from django.http import JsonResponse,HttpRequest
 #如果未登录则转到登录页面
 def login(func):
     # def login_fun(request, *args, **kwargs):
@@ -17,6 +16,9 @@ def login(func):
         if 'user_id' in request.session:
             return func(request, *args, **kwargs)
         else:
-            return redirect('/user/login/')
+            if request.is_ajax():
+                return JsonResponse({'login':1})
+            else:
+                return redirect('/user/login/')
     return login_fun
 

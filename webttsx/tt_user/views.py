@@ -9,6 +9,8 @@ from . import user_decorator
 from .models import *
 from . import task
 from tt_goods.models import *
+from tt_order.models import *
+from django.core.paginator import Paginator,Page
 
 # Create your views here.
 def register(request):
@@ -64,7 +66,6 @@ def login(request):
     context = {'title':'用户登录', 'uname':uname}
     return render(request, 'tt_user/login.html', context)
 
-
 # def login_handle(request):
 #     #接受请求信息
 #     post = request.POST
@@ -95,7 +96,6 @@ def login(request):
 #     else:
 #         context = {'title':'用户登录', 'error_name':1, 'error_pwd':0, 'uname':uname, 'upwd':upwd}
 #         return render(request, 'tt_user/login.html', context)
-
 
 def login_handle(request):
     if request.method == 'GET':
@@ -164,6 +164,7 @@ def info(request):
     #            'goods_list':goods_list}
     #读取最近浏览信息
     browsed_late = request.COOKIES.get('browsed_late')
+    uname = request.session.get('uname')
     goods_list = []
     if browsed_late:
         browsed_late_list = browsed_late.split(',')
@@ -172,26 +173,81 @@ def info(request):
             goods_list.append(GoodsInfo.objects.get(id=gid))
         # goods_list = GoodsInfo.objects.filter(id__in=(browsed_late_list))
 
-    context = {'title':'用户中心', 'goods_list':goods_list}
+    context = {'title':'用户中心', 'goods_list':goods_list, 'uname':uname}
     return render(request, 'tt_user/user_center_info.html', context)
 
 @user_decorator.login
 def order(request):
-    context = {'title':'我的订单'}
+    #少了分页的功能
+    pindex = request.GET.get('page', '1')#接受到页面参数,在传回去
+    order = OrderInfo.objects.filter(user_id=request.session.get('user_id')).order_by('-odate')
+    paginator = Paginator(order, 4)
+    page = paginator.page(int(pindex))
+
+    context = {'title':'我的订单', 'page':page}
     return render(request, 'tt_user/user_center_order.html', context)
 
 @user_decorator.login
 def site(request):
-    user = UserInfo.objects.get(id=request.session['user_id'])
-    if request.method == 'POST':
-        post = request._post
-        user.ushou = post.get('ushou')
-        user.uaddress = post.get('uaddress')
-        user.uyoubian = post.get('uyoubian')
-        user.uphone = post.get('uphone')
-        user.save()
-    context = {'title':'用户中心', 'user':user}
+    user_id = request.session.get('user_id')
+    sites = UserAddressInfo.objects.filter(user_id=user_id)
+
+    # if len(sites)>0:#测试,清除全部
+    #     UserAddressInfo.objects.all().delete()
+
+    #修改
+    site=UserAddressInfo()
+    sid = request.GET.get('sid')#get方式请求过来的
+    if sid:#知道修改那个对象
+        site = UserAddressInfo.objects.get(id=sid)
+
+    context = {'title':'收货地址','sites':sites, 'site':site}
     return render(request, 'tt_user/user_center_site.html', context)
+
+@user_decorator.login
+def site_handle(request):
+    dict = request.POST
+
+    user_id = request.session.get('user_id')
+    #如果是修改的时候，不新增
+    sid = dict.get('sid')
+
+    uname = dict.get('uname')
+    uaddress = dict.get('uaddress')
+    uphone = dict.get('uphone')
+    if sid=='0':#修改和新增就是新建对象的区别
+        address = UserAddressInfo()
+    else:
+        address = UserAddressInfo.objects.get(id=sid)
+    address.uname = uname
+    address.uphone = uphone
+    address.uaddress = uaddress
+    address.user_id = user_id
+
+
+    address.save()
+    return redirect('/user/site/')
+
+# def site(request):
+#     # .order_by('-uname')[0:5]
+#     user = UserInfo.objects.get(id=request.session.get('user_id'))
+#
+#     context={}
+#     if request.method == 'POST':
+#         post = request.POST
+#         addr = UserAddressInfo()
+#
+#         addr.user=user
+#         addr.uname = post.get('uname')
+#         addr.uaddress = post.get('uaddress')
+#
+#
+#         addr.uphone = post.get('uphone')
+#
+#         context['addr']=addr
+#         addr.save()
+#     context = {'title':'收货地址', 'user':user}
+#     return render(request, 'tt_user/user_center_site.html', context)
 
 
 from PIL import Image, ImageDraw, ImageFont

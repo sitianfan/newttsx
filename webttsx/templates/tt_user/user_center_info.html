@@ -1,5 +1,6 @@
 {% extends 'base_head_foot.html' %}
 {% block head %}
+
 {% endblock head %}
 {% block content %}
 	<div class="main_con clearfix">
@@ -15,9 +16,9 @@
 				<div class="info_con clearfix">
 				<h3 class="common_title2">基本信息</h3>
 						<ul class="user_info_list">
-							<li><span>用户名：</span> *_*{{ uname }}</li>
-							<li><span>联系方式：</span>*_*{{ uphone }}</li>
-							<li><span>联系地址：</span>*_*{{ uaddress }}</li>
+							<li><span>用户名：</span> {{ uname }}</li>
+{#							<li><span>联系方式：</span>*_*{{ uphone }}</li>#}
+{#							<li><span>联系地址：</span>*_*{{ uaddress }}</li>#}
 						</ul>
 				</div>
 				
@@ -29,7 +30,7 @@
 					<a href="/{{ goods.id }}/"><img src="/static/media/{{ goods.gpic }}"></a>
 					<h4><a href="/{{ goods.id }}/">{{ goods.gtitle }}</a></h4>
 					<div class="operate">
-						<span class="prize">￥1{{ goods.gprice }}</span>
+						<span class="prize">￥{{ goods.gprice }}</span>
 						<span class="unit">{{ goods.gprice }}/{{ goods.gunit }}</span>
 						<a href="#" class="add_goods" title="加入购物车"></a>
 					</div>
